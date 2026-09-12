@@ -15,12 +15,7 @@ async def main():
     # 実際のウィンドウ
     SCREEN_W = BASE_W * 2
     SCREEN_H = BASE_H * 2
-
-    screen = pygame.display.set_mode(
-        (SCREEN_W, SCREEN_H),
-        pygame.RESIZABLE
-    )
-
+    screen = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.RESIZABLE)
     clock = pygame.time.Clock()
 
     # =========================================================
@@ -39,17 +34,12 @@ async def main():
     # スコア
     # =========================================================
     score = 0
-
-    raw_scores = [
-        pygame.image.load(f"{i}.png").convert_alpha()
-        for i in range(10)
-    ]
+    raw_scores = [pygame.image.load(f"{i}.png").convert_alpha() for i in range(10)]
 
     # =========================================================
     # キャラクター
     # =========================================================
     state = "run"
-
     raw_frames = {
         "run": [
             pygame.image.load("run0.png").convert_alpha(),
@@ -57,17 +47,14 @@ async def main():
             pygame.image.load("run2.png").convert_alpha(),
             pygame.image.load("run3.png").convert_alpha(),
         ],
-
         "jump_up": [
             pygame.image.load("jump_up0.png").convert_alpha(),
             pygame.image.load("jump_up1.png").convert_alpha(),
         ],
-
         "jump_down": [
             pygame.image.load("jump_down0.png").convert_alpha(),
             pygame.image.load("jump_down1.png").convert_alpha(),
         ],
-
         "damaged": [
             pygame.image.load("damaged0.png").convert_alpha(),
             pygame.image.load("damaged1.png").convert_alpha(),
@@ -83,7 +70,6 @@ async def main():
 
     # ジャンプを途中で切るときの速度
     JUMP_CUT = -100.0
-
     jump_hold = False
 
     # 縦方向の速度
@@ -111,16 +97,13 @@ async def main():
 
     # 論理座標
     enemy_x = float(BASE_W)
-
     enemy_timer = 0
-
     ENEMY_INTERVAL = 2000
 
     # =========================================================
     # アニメーション
     # =========================================================
     ANIMATION_SWITCH_TIME = 100  # ms
-
     last_switch = pygame.time.get_ticks()
     current_frame = 0
 
@@ -130,14 +113,12 @@ async def main():
     scaled_frames = {}
     enemy_scaled_frames = []
     score_scaled_frames = []
-
     prev_scale = None
 
     # =========================================================
     # ゲームループ
     # =========================================================
     running = True
-
     while running:
         # -----------------------------------------------------
         # dt
@@ -180,10 +161,8 @@ async def main():
 
                 # 地面にいる場合のみジャンプ
                 elif y_offset == 0:
-
                     vy = JUMP_POWER
                     jump_hold = True
-
                     state = "jump_up"
                     current_frame = 0
 
@@ -210,8 +189,13 @@ async def main():
         # =====================================================
         scale_x = win_w / BASE_W
         scale_y = win_h / BASE_H
+        SCALE = max(scale_x, scale_y)
 
-        SCALE = min(scale_x, scale_y)
+        game_w = BASE_W * SCALE
+        game_h = BASE_H * SCALE
+
+        offset_x = (win_w - game_w) / 2
+        offset_y = (win_h - game_h) / 2
 
         # =====================================================
         # スケール済み画像を作成
@@ -221,18 +205,11 @@ async def main():
             # プレイヤー
             # -------------------------------------------------
             scaled_frames.clear()
-
             for key, imgs in raw_frames.items():
                 scaled_list = []
                 for img in imgs:
                     w, h = img.get_size()
-                    scaled = pygame.transform.scale(
-                        img,
-                        (
-                            int(w * SCALE),
-                            int(h * SCALE)
-                        )
-                    )
+                    scaled = pygame.transform.scale(img, (int(w * SCALE), int(h * SCALE)))
                     scaled_list.append(scaled)
 
                 scaled_frames[key] = scaled_list
@@ -241,34 +218,18 @@ async def main():
             # 敵
             # -------------------------------------------------
             enemy_scaled_frames.clear()
-
             for img in enemy_raw:
                 w, h = img.get_size()
-                scaled = pygame.transform.scale(
-                    img,
-                    (
-                        int(w * SCALE),
-                        int(h * SCALE)
-                    )
-                )
-
+                scaled = pygame.transform.scale(img, (int(w * SCALE), int(h * SCALE)))
                 enemy_scaled_frames.append(scaled)
 
             # -------------------------------------------------
             # スコア
             # -------------------------------------------------
             score_scaled_frames.clear()
-
             for img in raw_scores:
                 w, h = img.get_size()
-                scaled = pygame.transform.scale(
-                    img,
-                    (
-                        int(w * SCALE),
-                        int(h * SCALE)
-                    )
-                )
-
+                scaled = pygame.transform.scale(img, (int(w * SCALE), int(h * SCALE)))
                 score_scaled_frames.append(scaled)
 
             prev_scale = SCALE
@@ -324,41 +285,20 @@ async def main():
         # -----------------------------------------------------
         # 背景を論理座標で扱う
         # -----------------------------------------------------
-        bg_scaled = pygame.transform.scale(
-            bg,
-            (
-                int(BASE_W * SCALE),
-                int(BASE_H * SCALE)
-            )
-        )
+        bg_scaled = pygame.transform.scale(bg, (int(BASE_W * SCALE), int(BASE_H * SCALE)))
 
         # 実際の画面上の位置に変換
-        bg_screen_x = int(bg_x * SCALE)
-
-        screen.blit(
-            bg_scaled,
-            (bg_screen_x, 0)
-        )
-
-        screen.blit(
-            bg_scaled,
-            (
-                bg_screen_x + int(BASE_W * SCALE),
-                0
-            )
-        )
+        bg_screen_x = int(offset_x + bg_x * SCALE)
+        screen.blit(bg_scaled, (bg_screen_x, 0))
+        screen.blit(bg_scaled, (bg_screen_x + int(BASE_W * SCALE), 0))
 
         # =====================================================
         # 敵を出す
         # =====================================================
         now = pygame.time.get_ticks()
-
         if now - enemy_timer >= ENEMY_INTERVAL:
             enemy_x = float(BASE_W)
-            enemy_timer = (
-                now
-                + random.randint(-2, 2) * 150
-            )
+            enemy_timer = (now + random.randint(-2, 2) * 150)
 
         # -----------------------------------------------------
         # 敵を移動
@@ -369,11 +309,8 @@ async def main():
         # アニメーション
         # =====================================================
         frames = scaled_frames[state]
-
         if now - last_switch >= ANIMATION_SWITCH_TIME:
-            current_frame = (
-                current_frame + 1
-            ) % len(frames)
+            current_frame = (current_frame + 1) % len(frames)
             last_switch = now
 
             # 被ダメ中以外はスコア加算
@@ -396,15 +333,10 @@ async def main():
         # -----------------------------------------------------
         player_w = img.get_width() / SCALE
         player_h = img.get_height() / SCALE
-
-        player_x = (
-            BASE_W - player_w
-        ) / 5
+        player_x = (BASE_W - player_w) / 5
 
         # 地面のY座標
-        base_y = (
-            GROUND_Y - player_h
-        )
+        base_y = (GROUND_Y - player_h)
 
         # ジャンプによるY移動
         player_y = base_y + y_offset
@@ -412,79 +344,32 @@ async def main():
         # -----------------------------------------------------
         # 実際の画面座標へ変換
         # -----------------------------------------------------
-        player_screen_x = int(
-            player_x * SCALE
-        )
-
-        player_screen_y = int(
-            player_y * SCALE
-        )
-        screen.blit(
-            img,
-            (
-                player_screen_x,
-                player_screen_y
-            )
-        )
+        player_screen_x = int(offset_x + player_x * SCALE)
+        player_screen_y = int(offset_y + player_y * SCALE)
+        screen.blit(img, (player_screen_x, player_screen_y))
 
         # =====================================================
         # 敵
         # =====================================================
-        index = (
-            current_frame
-            % len(enemy_raw)
-        )
-
+        index = (current_frame % len(enemy_raw))
         enemy_img = enemy_scaled_frames[index]
-
         enemy_w = enemy_img.get_width() / SCALE
         enemy_h = enemy_img.get_height() / SCALE
-
-        enemy_y = (
-            GROUND_Y - enemy_h
-        )
+        enemy_y = (GROUND_Y - enemy_h)
 
         # 論理座標 → 画面座標
-        enemy_screen_x = int(
-            enemy_x * SCALE
-        )
-
-        enemy_screen_y = int(
-            enemy_y * SCALE
-        )
-
-        screen.blit(
-            enemy_img,
-            (
-                enemy_screen_x,
-                enemy_screen_y
-            )
-        )
+        enemy_screen_x = int(offset_x + enemy_x * SCALE)
+        enemy_screen_y = int(offset_y + enemy_y * SCALE)
+        screen.blit(enemy_img, (enemy_screen_x, enemy_screen_y))
 
         # =====================================================
         # スコア
         # =====================================================
-        for i, num in enumerate(
-            reversed(str(score))
-        ):
-            num_img = score_scaled_frames[
-                int(num)
-            ]
-
-            score_x = (
-                BASE_W * SCALE
-                - (i + 2) * 8 * SCALE
-            )
-
-            score_y = 16 * SCALE
-
-            screen.blit(
-                num_img,
-                (
-                    int(score_x),
-                    int(score_y)
-                )
-            )
+        for i, num in enumerate(reversed(str(score))):
+            num_img = score_scaled_frames[int(num)]
+            score_x = offset_x + BASE_W * SCALE - (i + 2) * 8 * SCALE
+            score_y = offset_y + 16 * SCALE
+            screen.blit(num_img, (int(score_x), int(score_y)))
 
         # =====================================================
         # 当たり判定
